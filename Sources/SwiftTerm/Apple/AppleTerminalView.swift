@@ -922,12 +922,23 @@ extension TerminalView {
         let lineOrigin = CGPoint(x: 0, y: frame.height - offset)
         #endif
 		
+		let newPos = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
+		let delta: CGSize = CGSize(
+			width: newPos.x - caretView.frame.origin.x,
+			height: newPos.y - caretView.frame.origin.y
+		)
+		var stretchX: CGFloat = (self.bounds.width/(delta.width*cellDimension.width))/cellDimension.width
+		var stretchY: CGFloat = (self.bounds.height/(delta.height*cellDimension.height))/cellDimension.height
+		if delta.width == 0 { stretchX = 1 }
+		if delta.height == 0 { stretchY = 1 }
+		
 		UIView.animate(
 			withDuration: 0.2,
 			delay: 0,
 			options: [.curveEaseInOut],
 			animations: {
 				caretView.frame.origin = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
+				caretView.transform = CGAffineTransform(scaleX: stretchX, y: stretchY)
 				caretView.transform = CGAffineTransform.identity
 			},
 			completion: nil
