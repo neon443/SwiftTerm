@@ -922,29 +922,51 @@ extension TerminalView {
         let lineOrigin = CGPoint(x: 0, y: frame.height - offset)
         #endif
 		
-		let newPos = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
-		let delta: CGSize = CGSize(
-			width: newPos.x - caretView.frame.origin.x,
-			height: newPos.y - caretView.frame.origin.y
-		)
-		var stretchX: CGFloat = (self.bounds.width/(delta.width*cellDimension.width))/cellDimension.width
-		var stretchY: CGFloat = (self.bounds.height/(delta.height*cellDimension.height))/cellDimension.height
-		if delta.width == 0 { stretchX = 1 }
-		if delta.height == 0 { stretchY = 1 }
-		
+		let newCaretPosition = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
 		UIView.animate(
 			withDuration: 0.2,
 			delay: 0,
 			options: [.curveEaseInOut],
-			animations: {
+			animations: { [self] in
+				let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
 				caretView.frame.origin = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
-				caretView.transform = CGAffineTransform(scaleX: stretchX, y: stretchY)
+				caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
 				caretView.transform = CGAffineTransform.identity
 			},
 			completion: nil
 		)
-        caretView.setText (ch: buffer.lines [vy][buffer.x])
-    }
+		caretView.setText (ch: buffer.lines [vy][buffer.x])
+	}
+	
+	/// Calculate how much to stretch the cursor
+	///	1: The net movement is determined.
+	///	2: This is converted into points, by multiplying by cellDimension
+	///	3: Stretch is calculated by dividing terminal size by pixel delta, then dividing again by cellDimension
+	///	4: If we moved 0 characters in x/y, dont stretch in those axes
+	///
+	/// - Parameters:
+	///   - oldPosition: The current position of the cursor before it has been moved
+	///   - newPosition: The position of the cursor after it has been moved
+	/// - Returns: A `CGSize` with the values representing how much to scale the cursor
+	/// 				1 being no change, 2 is twice the size and 0.5 being half.
+	func calculateJelly(old oldPosition: CGPoint, newPosition: CGPoint) -> CGSize {
+		var stretch: CGSize = CGSize(width: 1, height: 1)
+		let deltaChars: CGSize = CGSize(
+			width: newPosition.x - oldPosition.x,
+			height: newPosition.y - oldPosition.y
+		)
+		let delta: CGSize = CGSize(
+			width: deltaChars.width*cellDimension.width,
+			height: deltaChars.height*cellDimension.height
+		)
+		stretch = CGSize(
+			width: (self.bounds.width/delta.width)/cellDimension.width,
+			height: (self.bounds.height/delta.height)/cellDimension.height
+		)
+		if deltaChars.width == 0 { stretch.width = 1 }
+		if deltaChars.height == 0 { stretch.height = 1 }
+		return stretch
+	}
     
     // Does not use a default argument and merge, because it is called back
     func updateDisplay ()
