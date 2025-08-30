@@ -96,6 +96,7 @@ extension TerminalView {
             let v = CaretView(frame: CGRect(origin: .zero, size: CGSize(width: cellDimension.width, height: cellDimension.height)), cursorStyle: terminal.options.cursorStyle, terminal: self)
             addSubview(v)
             caretView = v
+			
         } else {
             updateCaretView ()
         }
@@ -920,7 +921,17 @@ extension TerminalView {
         let offset = (cellDimension.height * (CGFloat(buffer.y-(buffer.yDisp-buffer.yBase)+1)))
         let lineOrigin = CGPoint(x: 0, y: frame.height - offset)
         #endif
-        caretView.frame.origin = CGPoint(x: lineOrigin.x + (cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
+		
+		UIView.animate(
+			withDuration: 0.2,
+			delay: 0,
+			options: [.curveEaseInOut],
+			animations: {
+				caretView.frame.origin = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
+				caretView.transform = CGAffineTransform.identity
+			},
+			completion: nil
+		)
         caretView.setText (ch: buffer.lines [vy][buffer.x])
     }
     
