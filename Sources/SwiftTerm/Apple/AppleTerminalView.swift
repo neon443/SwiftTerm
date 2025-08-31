@@ -961,9 +961,13 @@ extension TerminalView {
 			width: deltaChars.width*cellDimension.width,
 			height: deltaChars.height*cellDimension.height
 		)
+//		stretch = CGSize(
+//			width: (self.bounds.width/delta.width)/cellDimension.width,
+//			height: (self.bounds.height/delta.height)/cellDimension.height
+//		)
 		stretch = CGSize(
-			width: (self.bounds.width/delta.width)/cellDimension.width,
-			height: (self.bounds.height/delta.height)/cellDimension.height
+			width: deltaChars.width+1,
+			height: deltaChars.height+1
 		)
 		if deltaChars.width == 0 { stretch.width = 1 }
 		if deltaChars.height == 0 { stretch.height = 1 }
