@@ -922,20 +922,23 @@ extension TerminalView {
         let lineOrigin = CGPoint(x: 0, y: frame.height - offset)
         #endif
 		
+		caretView.transform = CGAffineTransform.identity
+		let oldOrigin = caretView.frame.origin
 		let newCaretPosition = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
-		UIView.animate(
-			withDuration: 0.2,
-			delay: 0,
-			options: [.curveEaseInOut],
-			animations: { [self] in
-				let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
-				caretView.frame.origin = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
-				caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
-				caretView.transform = CGAffineTransform.identity
-			},
-			completion: nil
+		let newCenter = CGPoint(
+			x: caretView.center.x + (newCaretPosition.x-oldOrigin.x),
+			y: caretView.center.y + (newCaretPosition.y-oldOrigin.y)
 		)
-		caretView.setText (ch: buffer.lines [vy][buffer.x])
+		let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
+		UIView.animate(withDuration: 0.1) {
+			caretView.center = newCenter
+			caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
+		} completion: { _ in
+			UIView.animate(withDuration: 0.1) {
+				caretView.transform = CGAffineTransform.identity
+			}
+			caretView.setText (ch: buffer.lines [vy][buffer.x])
+		}
 	}
 	
 	/// Calculate how much to stretch the cursor
@@ -954,26 +957,19 @@ extension TerminalView {
 		guard newPosition != oldPosition else { return stretch }
 		
 		let deltaChars: CGSize = CGSize(
-			width: newPosition.x/cellDimension.width - oldPosition.x/cellDimension.width,
-			height: newPosition.y/cellDimension.height - oldPosition.y/cellDimension.height
+			width: abs(newPosition.x/cellDimension.width - oldPosition.x/cellDimension.width),
+			height: abs(newPosition.y/cellDimension.height - oldPosition.y/cellDimension.height)
 		)
-		let delta: CGSize = CGSize(
-			width: deltaChars.width*cellDimension.width,
-			height: deltaChars.height*cellDimension.height
-		)
-//		stretch = CGSize(
-//			width: (self.bounds.width/delta.width)/cellDimension.width,
-//			height: (self.bounds.height/delta.height)/cellDimension.height
-//		)
 		stretch = CGSize(
 			width: deltaChars.width+1,
 			height: deltaChars.height+1
 		)
-		if deltaChars.width == 0 { stretch.width = 1 }
-		if deltaChars.height == 0 { stretch.height = 1 }
 		stretch.width = abs(stretch.width)
 		stretch.height = abs(stretch.height)
-		print(delta)
+		if deltaChars.width == 0 { stretch.width = 1 }
+		if deltaChars.height == 0 { stretch.height = 1 }
+		if stretch.width == 0 { stretch.width = 1 }
+		if stretch.height == 0 { stretch.height = 1 }
 		print(deltaChars)
 		print(stretch)
 		return stretch
