@@ -923,15 +923,10 @@ extension TerminalView {
         #endif
 		
 		caretView.transform = CGAffineTransform.identity
-		let oldOrigin = caretView.frame.origin
 		let newCaretPosition = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
-		let newCenter = CGPoint(
-			x: caretView.center.x + (newCaretPosition.x-oldOrigin.x),
-			y: caretView.center.y + (newCaretPosition.y-oldOrigin.y)
-		)
 		let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
 		UIView.animate(withDuration: 0.1) {
-			caretView.center = newCenter
+			caretView.frame.origin = newCaretPosition
 			caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
 		} completion: { _ in
 			UIView.animate(withDuration: 0.1) {
@@ -970,8 +965,6 @@ extension TerminalView {
 		if deltaChars.height == 0 { stretch.height = 1 }
 		if stretch.width == 0 { stretch.width = 1 }
 		if stretch.height == 0 { stretch.height = 1 }
-		print(deltaChars)
-		print(stretch)
 		return stretch
 	}
     
