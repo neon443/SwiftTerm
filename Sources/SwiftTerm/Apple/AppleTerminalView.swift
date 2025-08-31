@@ -951,9 +951,11 @@ extension TerminalView {
 	/// 				1 being no change, 2 is twice the size and 0.5 being half.
 	func calculateJelly(old oldPosition: CGPoint, newPosition: CGPoint) -> CGSize {
 		var stretch: CGSize = CGSize(width: 1, height: 1)
+		guard newPosition != oldPosition else { return stretch }
+		
 		let deltaChars: CGSize = CGSize(
-			width: newPosition.x - oldPosition.x,
-			height: newPosition.y - oldPosition.y
+			width: newPosition.x/cellDimension.width - oldPosition.x/cellDimension.width,
+			height: newPosition.y/cellDimension.height - oldPosition.y/cellDimension.height
 		)
 		let delta: CGSize = CGSize(
 			width: deltaChars.width*cellDimension.width,
@@ -965,6 +967,11 @@ extension TerminalView {
 		)
 		if deltaChars.width == 0 { stretch.width = 1 }
 		if deltaChars.height == 0 { stretch.height = 1 }
+		stretch.width = abs(stretch.width)
+		stretch.height = abs(stretch.height)
+		print(delta)
+		print(deltaChars)
+		print(stretch)
 		return stretch
 	}
     
