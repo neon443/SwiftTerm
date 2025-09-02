@@ -124,6 +124,12 @@ public protocol TerminalDelegate: AnyObject {
      * by client application.
      */
     func cursorStyleChanged (source: Terminal, newStyle: CursorStyle)
+	
+	/**
+	 * This method is invoked when a request to change the cursor animations has been issued
+	 * by client application.
+	 */
+	func cursorAnimationsChanged (source: Terminal, newAnimations: CursorAnimations)
     
     /**
      * This method is invoked when the client application has issued a command to report
@@ -2855,6 +2861,13 @@ open class Terminal {
             options.cursorStyle = style
         }
     }
+	
+	public func setCursorAnimations(_ cursorAnimations: CursorAnimations) {
+		if options.cursorAnimations != cursorAnimations {
+			tdel?.cursorAnimationsChanged(source: self, newAnimations: cursorAnimations)
+			options.cursorAnimations = cursorAnimations
+		}
+	}
     
     //
     // CSI Ps SP q  Set cursor style (DECSCUSR, VT520).
@@ -5314,6 +5327,10 @@ public extension TerminalDelegate {
     {
         // Do nothing
     }
+	
+	public func cursorAnimationsChanged(source: Terminal, newAnimations: CursorAnimations) {
+		// nothing
+	}
     
     func setTerminalTitle (source: Terminal, title: String) {
         // Do nothing

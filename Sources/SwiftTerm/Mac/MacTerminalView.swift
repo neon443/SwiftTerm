@@ -1189,6 +1189,10 @@ open class TerminalView: NSView, NSTextInputClient, NSUserInterfaceValidations, 
         caretView.style = newStyle
         updateCaretView()
     }
+	
+	open func cursorAnimationsChanged(source: Terminal, newAnimations: CursorAnimations) {
+		//
+	}
 
     open func bell(source: Terminal) {
         terminalDelegate?.bell (source: self)

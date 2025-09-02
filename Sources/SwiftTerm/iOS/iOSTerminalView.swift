@@ -1388,6 +1388,10 @@ open class TerminalView: UIScrollView, UITextInputTraits, UIKeyInput, UIScrollVi
         caretView?.style = newStyle
         updateCaretView()
     }
+	
+	open func cursorAnimationsChanged(source: Terminal, newAnimations: CursorAnimations) {
+		//
+	}
 
     open func bell(source: Terminal) {
         terminalDelegate?.bell (source: self)

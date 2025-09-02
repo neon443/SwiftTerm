@@ -38,6 +38,37 @@ public enum CursorStyle {
     }
 }
 
+public enum CursorAnimationType {
+	case stretchAndMove //stretch and animate movements
+	case move //only animate movements
+	case none //no animations
+}
+
+public struct CursorAnimations: Equatable {
+	/// animation type
+	public var type: CursorAnimationType
+	
+	/// stretch multiplier
+	public var stretchMultiplier: CGFloat
+	
+	/// total animation length
+	public var length: Double
+	
+	public static var `default`: CursorAnimations {
+		CursorAnimations(type: .none, stretchMultiplier: 1, length: 0.2)
+	}
+	
+	public init(
+		type: CursorAnimationType = Self.default.type,
+		stretchMultiplier: CGFloat = Self.default.stretchMultiplier,
+		length: Double = Self.default.length
+	) {
+		self.type = type
+		self.stretchMultiplier = stretchMultiplier
+		self.length = length
+	}
+}
+
 /// Configuration options for the terminal at startup, these values are only read at startup
 public struct TerminalOptions {
     /// Desired number of columns at startup (default 80)
@@ -50,6 +81,8 @@ public struct TerminalOptions {
     public var termName: String
     /// The desired startup cursor style, this merely sets an internal variable, it is the view job to render it
     public var cursorStyle: CursorStyle
+	/// stores cursor animation preferences
+	public var cursorAnimations: CursorAnimations
     /// Deprecated?   The new accessibility work will make this useless
     public var screenReaderMode: Bool
     /// Size of the scrollback buffer, defaults to 500 lines
@@ -65,18 +98,19 @@ public struct TerminalOptions {
                                                        convertEol: false,
                                                        termName: "xterm-256color",
                                                        cursorStyle: .blinkBlock,
+													   cursorAnimations: CursorAnimations.default,
                                                        screenReaderMode: false,
                                                        scrollback: 500,
                                                        tabStopWidth: 8,
                                                        enableSixelReported: true)
 
-  public init(cols: Int = Self.default.cols, rows: Int = Self.default.rows, convertEol: Bool = Self.default.convertEol, termName: String = Self.default.termName, cursorStyle: CursorStyle = Self.default.cursorStyle, screenReaderMode: Bool = Self.default.screenReaderMode, scrollback: Int = Self.default.scrollback, tabStopWidth: Int = Self.default.tabStopWidth,
-              enableSixelReported: Bool = Self.default.enableSixelReported) {
+  public init(cols: Int = Self.default.cols, rows: Int = Self.default.rows, convertEol: Bool = Self.default.convertEol, termName: String = Self.default.termName, cursorStyle: CursorStyle = Self.default.cursorStyle, cursorAnimations: CursorAnimations = Self.default.cursorAnimations, screenReaderMode: Bool = Self.default.screenReaderMode, scrollback: Int = Self.default.scrollback, tabStopWidth: Int = Self.default.tabStopWidth, enableSixelReported: Bool = Self.default.enableSixelReported) {
         self.cols = cols
         self.rows = rows
         self.convertEol = convertEol
         self.termName = termName
         self.cursorStyle = cursorStyle
+        self.cursorAnimations = cursorAnimations
         self.screenReaderMode = screenReaderMode
         self.scrollback = scrollback
         self.tabStopWidth = tabStopWidth

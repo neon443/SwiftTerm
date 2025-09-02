@@ -922,26 +922,45 @@ extension TerminalView {
         let lineOrigin = CGPoint(x: 0, y: frame.height - offset)
         #endif
 		
-		caretView.transform = CGAffineTransform.identity
+		let cursorAnimations = terminal.options.cursorAnimations
 		let newCaretPosition = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
-		let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
-		UIView.animate(withDuration: 0.1) {
-			caretView.frame.origin = newCaretPosition
-			caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
-		} completion: { _ in
-			UIView.animate(withDuration: 0.1) {
-				caretView.transform = CGAffineTransform.identity
+		
+		switch cursorAnimations.type {
+		case .stretchAndMove:
+#if canImport(UIKit)
+			let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
+			UIView.animate(withDuration: cursorAnimations.length/2) {
+					caretView.frame.origin = newCaretPosition
+					caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
+			} completion: { _ in
+				UIView.animate(withDuration: cursorAnimations.length/2) {
+					caretView.transform = CGAffineTransform.identity
+				}
+				caretView.setText (ch: buffer.lines [vy][buffer.x])
 			}
+#else
+			fallthrough
+#endif
+		case .move:
+#if canImport(UIKit)
+			UIView.animate(withDuration: cursorAnimations.length/2) {
+					caretView.frame.origin = newCaretPosition
+			} completion: { _ in
+				UIView.animate(withDuration: cursorAnimations.length/2) {
+					caretView.transform = CGAffineTransform.identity
+				}
+				caretView.setText (ch: buffer.lines [vy][buffer.x])
+			}
+#else
+			fallthrough
+#endif
+		case .none:
+			caretView.frame.origin = newCaretPosition
 			caretView.setText (ch: buffer.lines [vy][buffer.x])
 		}
 	}
 	
 	/// Calculate how much to stretch the cursor
-	///	1: The net movement is determined.
-	///	2: This is converted into points, by multiplying by cellDimension
-	///	3: Stretch is calculated by dividing terminal size by pixel delta, then dividing again by cellDimension
-	///	4: If we moved 0 characters in x/y, dont stretch in those axes
-	///
 	/// - Parameters:
 	///   - oldPosition: The current position of the cursor before it has been moved
 	///   - newPosition: The position of the cursor after it has been moved
