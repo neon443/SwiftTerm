@@ -38,13 +38,24 @@ public enum CursorStyle {
     }
 }
 
-public enum CursorAnimationType {
+public enum CursorAnimationType: Codable, CaseIterable, CustomStringConvertible {
 	case stretchAndMove //stretch and animate movements
 	case move //only animate movements
 	case none //no animations
+	
+	public var description: String {
+		switch self {
+		case .stretchAndMove:
+			return "Stretch and Glide"
+		case .move:
+			return "Glide"
+		case .none:
+			return "None"
+		}
+	}
 }
 
-public struct CursorAnimations: Equatable {
+public struct CursorAnimations: Equatable, Codable {
 	/// animation type
 	public var type: CursorAnimationType
 	

@@ -306,6 +306,9 @@ open class Terminal {
     // reset() will do that again
     var sendFocus: Bool = false
     var cursorHidden : Bool = false
+	
+	// date of last cursor move
+	var lastCursorMove: Date = Date()
     
     /// Controls the origin mode (DECOM), when set, the screen is limited to the top and bottom margins
     var originMode: Bool = false

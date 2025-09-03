@@ -36,7 +36,7 @@ struct ViewLineInfo {
     var images: [TerminalImage]?
 }
 
-extension TerminalView {
+extension TerminalView {	
     typealias CellDimension = CGSize
     
     func resetCaches ()
@@ -925,16 +925,24 @@ extension TerminalView {
 		let cursorAnimations = terminal.options.cursorAnimations
 		let newCaretPosition = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
 		
+		if terminal.lastCursorMove.timeIntervalSinceNow > -0.01 && newCaretPosition != caretView.frame.origin {
+			caretView.transform = CGAffineTransform.identity
+			caretView.frame.origin = newCaretPosition
+			caretView.setText (ch: buffer.lines [vy][buffer.x])
+			terminal.lastCursorMove = Date()
+		}
+		if newCaretPosition != caretView.frame.origin {
+			terminal.lastCursorMove = Date()
+		}
+		
 		switch cursorAnimations.type {
 		case .stretchAndMove:
 #if canImport(UIKit)
 			let jelly = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
 			UIView.animate(withDuration: cursorAnimations.length/2) {
-//				caretView.layer.anchorPoint = jelly.anchor
 				caretView.transform = CGAffineTransform(scaleX: jelly.stretch.x, y: jelly.stretch.y)
 			} completion: { _ in
 				UIView.animate(withDuration: cursorAnimations.length/2) {
-//					caretView.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
 					caretView.transform = CGAffineTransform.identity
 					caretView.frame.origin = newCaretPosition
 					caretView.setText (ch: buffer.lines [vy][buffer.x])
