@@ -930,18 +930,13 @@ extension TerminalView {
 #if canImport(UIKit)
 			let jelly = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
 			UIView.animate(withDuration: cursorAnimations.length/2) {
-				caretView.layer.anchorPoint = CGPoint(x: jelly.anchor.x, y: jelly.anchor.y)
+				caretView.frame.origin = newCaretPosition
 				caretView.transform = CGAffineTransform(scaleX: jelly.stretch.x, y: jelly.stretch.y)
 			} completion: { _ in
 				UIView.animate(withDuration: cursorAnimations.length/2) {
-					caretView.layer.anchorPoint = CGPoint(x: 1-jelly.anchor.x, y: 1-jelly.anchor.y)
-					caretView.transform = CGAffineTransform(scaleX: 1, y: 1)
-				} completion: { _ in
-					caretView.frame.origin = newCaretPosition
 					caretView.transform = CGAffineTransform.identity
+					caretView.setText (ch: buffer.lines [vy][buffer.x])
 				}
-				caretView.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-				caretView.setText (ch: buffer.lines [vy][buffer.x])
 			}
 #else
 			fallthrough
