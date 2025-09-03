@@ -74,3 +74,22 @@ extension Array where Element == UInt8 {
 
 extension ArraySlice where Element == UInt8 {
 }
+
+// run a closure over each coordinate in a CGSize and return the new CGSize
+extension CGSize {
+	func map(_ mapper: ((_ coord: CGFloat, _ isX: Bool) -> CGFloat)) -> CGSize {
+		return CGSize(
+			width: mapper(self.width, true),
+			height: mapper(self.height, false)
+		)
+	}
+}
+//same thing for cgpoint
+extension CGPoint {
+	func map(_ mapper: ((_ coord: CGFloat, _ isX: Bool) -> CGFloat)) -> CGPoint {
+		return CGPoint(
+			x: mapper(self.x, true),
+			y: mapper(self.y, false)
+		)
+	}
+}

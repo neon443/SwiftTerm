@@ -928,14 +928,19 @@ extension TerminalView {
 		switch cursorAnimations.type {
 		case .stretchAndMove:
 #if canImport(UIKit)
-			let stretch = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
+			let jelly = self.calculateJelly(old: caretView.frame.origin, newPosition: newCaretPosition)
 			UIView.animate(withDuration: cursorAnimations.length/2) {
-					caretView.frame.origin = newCaretPosition
-					caretView.transform = CGAffineTransform(scaleX: stretch.width, y: stretch.height)
+				caretView.layer.anchorPoint = CGPoint(x: jelly.anchor.x, y: jelly.anchor.y)
+				caretView.transform = CGAffineTransform(scaleX: jelly.stretch.x, y: jelly.stretch.y)
 			} completion: { _ in
 				UIView.animate(withDuration: cursorAnimations.length/2) {
+					caretView.layer.anchorPoint = CGPoint(x: 1-jelly.anchor.x, y: 1-jelly.anchor.y)
+					caretView.transform = CGAffineTransform(scaleX: 1, y: 1)
+				} completion: { _ in
+					caretView.frame.origin = newCaretPosition
 					caretView.transform = CGAffineTransform.identity
 				}
+				caretView.layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
 				caretView.setText (ch: buffer.lines [vy][buffer.x])
 			}
 #else
@@ -944,7 +949,7 @@ extension TerminalView {
 		case .move:
 #if canImport(UIKit)
 			UIView.animate(withDuration: cursorAnimations.length/2) {
-					caretView.frame.origin = newCaretPosition
+				caretView.frame.origin = newCaretPosition
 			} completion: { _ in
 				UIView.animate(withDuration: cursorAnimations.length/2) {
 					caretView.transform = CGAffineTransform.identity
@@ -960,31 +965,42 @@ extension TerminalView {
 		}
 	}
 	
-	/// Calculate how much to stretch the cursor
+	/// Calculate how much to stretch the cursor and the stretch anchor
 	/// - Parameters:
 	///   - oldPosition: The current position of the cursor before it has been moved
 	///   - newPosition: The position of the cursor after it has been moved
 	/// - Returns: A `CGSize` with the values representing how much to scale the cursor
 	/// 				1 being no change, 2 is twice the size and 0.5 being half.
-	func calculateJelly(old oldPosition: CGPoint, newPosition: CGPoint) -> CGSize {
-		var stretch: CGSize = CGSize(width: 1, height: 1)
-		guard newPosition != oldPosition else { return stretch }
+	func calculateJelly(old oldPosition: CGPoint, newPosition: CGPoint) -> (stretch: CGPoint, anchor: CGPoint) {
+		var stretch: CGPoint = CGPoint(x: 1, y: 1)
+		var anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)
+		guard newPosition != oldPosition else { return (stretch, anchor) }
 		
-		let deltaChars: CGSize = CGSize(
-			width: abs(newPosition.x/cellDimension.width - oldPosition.x/cellDimension.width),
-			height: abs(newPosition.y/cellDimension.height - oldPosition.y/cellDimension.height)
+		let deltaChars: CGPoint = CGPoint(
+			x: newPosition.x/cellDimension.width - oldPosition.x/cellDimension.width,
+			y: newPosition.y/cellDimension.height - oldPosition.y/cellDimension.height
 		)
-		stretch = CGSize(
-			width: deltaChars.width+1,
-			height: deltaChars.height+1
+		
+		anchor = deltaChars.map { coord, isX in
+			guard coord >= 1 || coord <= -1 else { return 0.5 }
+			return coord > 0 && isX ? 0 : 1
+		}
+		
+		let absDeltaChars = deltaChars.map { coord, _ in
+			abs(coord)
+		}
+		stretch = CGPoint(
+			x: absDeltaChars.x+1,
+			y: absDeltaChars.y+1
 		)
-		stretch.width = abs(stretch.width)
-		stretch.height = abs(stretch.height)
-		if deltaChars.width == 0 { stretch.width = 1 }
-		if deltaChars.height == 0 { stretch.height = 1 }
-		if stretch.width == 0 { stretch.width = 1 }
-		if stretch.height == 0 { stretch.height = 1 }
-		return stretch
+		
+		stretch.x = abs(stretch.x)
+		stretch.y = abs(stretch.y)
+		if absDeltaChars.x == 0 { stretch.x = 1 }
+		if absDeltaChars.y == 0 { stretch.y = 1 }
+		if stretch.x == 0 { stretch.x = 1 }
+		if stretch.y == 0 { stretch.y = 1 }
+		return (stretch, anchor)
 	}
     
     // Does not use a default argument and merge, because it is called back
