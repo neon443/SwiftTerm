@@ -92,4 +92,25 @@ extension CGPoint {
 			y: mapper(self.y, false)
 		)
 	}
+	
+	func midpoint(_ with: CGPoint) -> CGPoint {
+		guard self != with else { return self }
+		let delta = with.map { coord, isX in
+			if isX {
+				return coord - self.x
+			} else {
+				return coord - self.y
+			}
+		}
+		let deltaHalf = delta.map { coord, _ in
+			coord/2
+		}
+		return self.map { coord, isX in
+			if isX {
+				return coord + deltaHalf.x
+			} else {
+				return coord + deltaHalf.y
+			}
+		}
+	}
 }
