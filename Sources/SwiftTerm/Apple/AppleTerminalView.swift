@@ -925,7 +925,7 @@ extension TerminalView {
 		let cursorAnimations = terminal.options.cursorAnimations
 		let newCaretPosition = CGPoint(x: lineOrigin.x + (self.cellDimension.width * doublePosition * CGFloat(buffer.x)), y: lineOrigin.y)
 		
-		if terminal.lastCursorMove.timeIntervalSinceNow > -0.01 && newCaretPosition != caretView.frame.origin {
+		if terminal.lastCursorMove.timeIntervalSinceNow > -0.001 && newCaretPosition != caretView.frame.origin {
 			caretView.transform = CGAffineTransform.identity
 			caretView.frame.origin = newCaretPosition
 			caretView.setText (ch: buffer.lines [vy][buffer.x])
